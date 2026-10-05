@@ -1,6 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Pure Single Candle Pro - Ultimate", page_icon="⚡", layout="centered")
 
@@ -16,19 +17,6 @@ st.markdown("""
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             border: 1px solid #30363d;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-        .timer-box {
-            background: #111827;
-            border: 2px solid #00ffcc;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            font-family: monospace;
-            font-size: 28px;
-            color: #00ffcc;
-            font-weight: bold;
-            box-shadow: 0 0 20px rgba(0,255,204,0.3);
-            margin-bottom: 20px;
         }
         .bulb-container {
             display: flex;
@@ -96,8 +84,32 @@ with col2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# بغیر پیج ریفریش کیے رواں دواں لائیو ٹائمر (جاوا اسکریپت کمپोनेंट)
-st.markdown(f"""
+# لائیو کینڈل ٹائمر جو بغیر پیج ریفریش کیے بغیر رُکے چلے گا
+timer_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{
+            background-color: transparent;
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+        }}
+        .timer-box {{
+            background: #111827;
+            border: 2px solid #00ffcc;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            font-size: 28px;
+            color: #00ffcc;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,255,204,0.3);
+        }}
+    </style>
+</head>
+<body>
     <div class="timer-box">
         ⏳ Next Candle Countdown: <span id="live-timer">--:--</span>
     </div>
@@ -117,7 +129,11 @@ st.markdown(f"""
         setInterval(updateCountdown, 1000);
         updateCountdown();
     </script>
-""", unsafe_allow_html=True)
+</body>
+</html>
+"""
+
+components.html(timer_html, height=85)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
