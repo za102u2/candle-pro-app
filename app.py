@@ -1,7 +1,6 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import time
 
 st.set_page_config(page_title="Pure Single Candle Pro - Ultimate", page_icon="⚡", layout="centered")
 
@@ -25,7 +24,7 @@ st.markdown("""
             padding: 15px;
             text-align: center;
             font-family: monospace;
-            font-size: 26px;
+            font-size: 28px;
             color: #00ffcc;
             font-weight: bold;
             box-shadow: 0 0 20px rgba(0,255,204,0.3);
@@ -53,6 +52,7 @@ st.markdown("""
             border-radius: 50%;
             display: inline-block;
             box-shadow: 0 0 15px #10b981;
+            animation: blink 1.5s infinite;
         }
         .bulb-red {
             height: 18px;
@@ -61,6 +61,12 @@ st.markdown("""
             border-radius: 50%;
             display: inline-block;
             box-shadow: 0 0 15px #ef4444;
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
         }
     </style>
 
@@ -90,22 +96,27 @@ with col2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# لائیو کینڈل کاؤنٹ ڈاؤن ٹائمر کا حساب
-current_epoch = int(time.time())
-remaining_seconds = tf_seconds - (current_epoch % tf_seconds)
-mins = remaining_seconds // 60
-secs = remaining_seconds % 60
-
-# ٹائمر باکس ڈسپلے
+# بغیر پیج ریفریش کیے رواں دواں لائیو ٹائمر (جاوا اسکریپت کمپोनेंट)
 st.markdown(f"""
     <div class="timer-box">
-        ⏳ Next Candle Countdown: {mins:02d}:{secs:02d}
+        ⏳ Next Candle Countdown: <span id="live-timer">--:--</span>
     </div>
-""", unsafe_allow_html=True)
-
-# آٹو ریفریش اسکرپٹ (تاکہ ہر سیکنڈ ٹائمر خود بخود اپ ڈیٹ ہو)
-st.markdown(f"""
-    <meta http-equiv="refresh" content="1">
+    <script>
+        const tfSeconds = {tf_seconds};
+        function updateCountdown() {{
+            const now = Math.floor(Date.now() / 1000);
+            const remaining = tfSeconds - (now % tfSeconds);
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            const formatted = (mins < 10 ? "0" : "") + mins + ":" + (secs < 10 ? "0" : "") + secs;
+            const timerElement = document.getElementById("live-timer");
+            if (timerElement) {{
+                timerElement.innerText = formatted;
+            }}
+        }}
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
 """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -128,7 +139,7 @@ st.markdown("""
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# اسکین بٹन
+# اسکین بٹن
 if st.button("🚀 SCAN LIVE MARKET CANDLE", type="primary", use_container_width=True):
     with st.spinner("Analyzing micro-structure & order flow..."):
         try:
