@@ -1,12 +1,11 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-from datetime import datetime
+import time
 
-# پیج کی سیٹنگ
 st.set_page_config(page_title="Pure Single Candle Pro - Ultimate", page_icon="⚡", layout="centered")
 
-# کسٹم پرو اسٹائلنگ، لائیو ٹائمر اور بلب ایفیکٹس کے لیے سی ایس ایس اور جے ایس
+# پرو اسٹائلنگ اور بلب ایفیکٹس
 st.markdown("""
     <style>
         .main-header {
@@ -23,19 +22,19 @@ st.markdown("""
             background: #111827;
             border: 2px solid #00ffcc;
             border-radius: 12px;
-            padding: 12px;
+            padding: 15px;
             text-align: center;
             font-family: monospace;
-            font-size: 24px;
+            font-size: 26px;
             color: #00ffcc;
             font-weight: bold;
-            box-shadow: 0 0 15px rgba(0,255,204,0.3);
+            box-shadow: 0 0 20px rgba(0,255,204,0.3);
             margin-bottom: 20px;
         }
         .bulb-container {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 20px;
             margin: 20px 0;
         }
         .bulb-card {
@@ -47,20 +46,21 @@ st.markdown("""
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             flex: 1;
         }
-        .bulb {
-            height: 20px;
-            width: 20px;
+        .bulb-green {
+            height: 18px;
+            width: 18px;
+            background-color: #10b981;
             border-radius: 50%;
             display: inline-block;
-            margin-bottom: 5px;
-        }
-        .bulb-green {
-            background-color: #10b981;
-            box-shadow: 0 0 12px #10b981;
+            box-shadow: 0 0 15px #10b981;
         }
         .bulb-red {
+            height: 18px;
+            width: 18px;
             background-color: #ef4444;
-            box-shadow: 0 0 12px #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 15px #ef4444;
         }
     </style>
 
@@ -71,7 +71,7 @@ st.markdown("""
     <br>
 """, unsafe_allow_html=True)
 
-# سائیڈ بار یا مین کنٹرول پینل
+# کنٹرول پینل
 col1, col2 = st.columns(2)
 with col1:
     asset_options = [('Bitcoin (BTC/USD)', 'BTC-USD'), ('EUR/USD', 'EURUSD=X'), ('GBP/USD', 'GBPUSD=X'), ('USD/JPY', 'USDJPY=X')]
@@ -86,44 +86,41 @@ with col2:
         ('15 Minutes', 900)
     ]
     selected_tf_label = st.selectbox("⏱ Select Timeframe:", tf_options, format_func=lambda x: x[0])[0]
-    selected_tf_val = dict(tf_options)[selected_tf_label]
+    tf_seconds = dict(tf_options)[selected_tf_label]
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# لائیو کینڈل ٹائمر ویجیٹ (جاوا اسکریپت کے ذریعے رئیل ٹائم سنک)
-timer_placeholder = st.empty()
-timer_placeholder.markdown(f"""
+# لائیو کینڈل کاؤنٹ ڈاؤن ٹائمر کا حساب
+current_epoch = int(time.time())
+remaining_seconds = tf_seconds - (current_epoch % tf_seconds)
+mins = remaining_seconds // 60
+secs = remaining_seconds % 60
+
+# ٹائمر باکس ڈسپلے
+st.markdown(f"""
     <div class="timer-box">
-        ⏳ Next Candle Synchronization: <span id="clock">--:--</span>
+        ⏳ Next Candle Countdown: {mins:02d}:{secs:02d}
     </div>
-    <script>
-        function updateTimer() {{
-            const now = new Date();
-            const seconds = now.getSeconds();
-            const remaining = {selected_tf_val} - (Math.floor(now.getTime() / 1000) % {selected_tf_val});
-            const mins = Math.floor(remaining / 60);
-            const secs = remaining % 60;
-            document.getElementById("clock").innerText = 
-                (mins < 10 ? "0" : "") + mins + ":" + (secs < 10 ? "0" : "") + secs;
-        }}
-        setInterval(updateTimer, 1000);
-        updateTimer();
-    </script>
+""", unsafe_allow_html=True)
+
+# آٹو ریفریش اسکرپٹ (تاکہ ہر سیکنڈ ٹائمر خود بخود اپ ڈیٹ ہو)
+st.markdown(f"""
+    <meta http-equiv="refresh" content="1">
 """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# بلب انڈیکیٹرز کا سیکشن (ابتدائی حالت)
+# بلب انڈیکیٹرز
 st.markdown("""
     <div class="bulb-container">
         <div class="bulb-card">
-            <div class="bulb bulb-green"></div>
-            <div style="color: #10b981; font-weight: bold; font-size: 14px;">CALL STATUS</div>
-            <div style="color: #9ca3af; font-size: 11px;">Bullish Momentum Ready</div>
+            <div class="bulb-green"></div>
+            <div style="color: #10b981; font-weight: bold; font-size: 14px; margin-top: 5px;">CALL STATUS</div>
+            <div style="color: #9ca3af; font-size: 11px;">Bullish Momentum Active</div>
         </div>
         <div class="bulb-card">
-            <div class="bulb bulb-red"></div>
-            <div style="color: #ef4444; font-weight: bold; font-size: 14px;">PUT STATUS</div>
+            <div class="bulb-red"></div>
+            <div style="color: #ef4444; font-weight: bold; font-size: 14px; margin-top: 5px;">PUT STATUS</div>
             <div style="color: #9ca3af; font-size: 11px;">Bearish Pressure Active</div>
         </div>
     </div>
@@ -131,13 +128,12 @@ st.markdown("""
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# اسکین بٹن
+# اسکین بٹन
 if st.button("🚀 SCAN LIVE MARKET CANDLE", type="primary", use_container_width=True):
     with st.spinner("Analyzing micro-structure & order flow..."):
         try:
-            # یفائন্যান্স سے ڈیٹا فیچ کرنا
             tf_map = {60: '1m', 120: '2m', 180: '3m', 300: '5m', 900: '15m'}
-            yf_interval = tf_map.get(selected_tf_val, '1m')
+            yf_interval = tf_map.get(tf_seconds, '1m')
             
             data = yf.download(selected_asset, period="1d", interval=yf_interval, progress=False)
             
